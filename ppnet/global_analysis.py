@@ -54,9 +54,27 @@ def run_analysis(args: Namespace):
     log(f'Model base architecture: {model_base_architecture}')
     log(f'Experiment run: {experiment_run}\n')
 
-    ppnet = torch.load(args.model)
-    ppnet = ppnet.cuda()
-    ppnet_multi = torch.nn.DataParallel(ppnet)
+    from torch.serialization import add_safe_globals
+    from ppnet.model import PPNet
+    add_safe_globals([PPNet])
+    try:
+        from ppnet.resnet_features import ResNet_features
+        add_safe_globals([ResNet_features])
+    except Exception:
+        try:
+            from ppnet.vgg_features import VGG_features
+            add_safe_globals([VGG_features])
+        except Exception:
+            pass
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    ppnet = torch.load(args.model, weights_only=False, map_location=device)
+    if torch.cuda.is_available():
+        ppnet = ppnet.cuda()
+        ppnet_multi = torch.nn.DataParallel(ppnet)
+    else:
+        ppnet_multi = ppnet
+
 
     img_size = ppnet_multi.module.img_size
     batch_size = 100
@@ -138,4 +156,31 @@ def run_analysis(args: Namespace):
         root_dir_for_saving_images=root_dir_for_saving_test_images,
         log=log)
 
-    logclose()
+    logclose() 
+
+if __name__ == "__main__":
+    import argparse
+    from torch.serialization import add_safe_globals
+    # Allowlist the classes pickled inside the checkpoint
+    from ppnet.model import PPNet
+    add_safe_globals([PPNet])
+    try:
+        from ppnet.resnet_features import ResNet_features
+        add_safe_globals([ResNet_features])
+    except Exception:
+        try:
+            from ppnet.vgg_features import VGG_features
+            add_safe_globals([VGG_features])
+        except Exception:
+            pass
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--gpus", type=str, default="0")
+    parser.add_argument("--dataset", type=str, required=True)     # e.g. img/cub200
+    parser.add_argument("--model", type=str, required=True)       # e.g. saved_models/.../300push_local.pth
+    parser.add_argument("--out", type=str, default="runs")
+    parser.add_argument("--num_workers", type=int, default=4)
+    parser.add_argument("--top_imgs", type=int, default=5)
+    args = parser.parse_args()
+
+    run_analysis(args)
