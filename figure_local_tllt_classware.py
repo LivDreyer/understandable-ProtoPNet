@@ -3,7 +3,6 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 
-# -------- utilities --------
 def resolve_test_image(test_arg, roots):
     if os.path.exists(test_arg):
         return os.path.abspath(test_arg)
@@ -14,7 +13,7 @@ def resolve_test_image(test_arg, roots):
         for dp,_,files in os.walk(root):
             if base in files:
                 return os.path.abspath(os.path.join(dp, base))
-    raise FileNotFoundError(f"Immagine non trovata: {test_arg}")
+    raise FileNotFoundError(f"Image not found: {test_arg}")
 
 def load_images_txt(path):
     id2rel = {}
@@ -35,20 +34,14 @@ def prefer_proto_render(run_dir, j):
     return None
 
 def try_load_last_layer_row(ckpt_path, class_id_zero_based):
-    """
-    Prova a leggere last_layer.weight[C,P] dal checkpoint.
-    Ritorna un vettore di lunghezza P (float) oppure None.
-    """
+   
     try:
         import torch
         blob = torch.load(ckpt_path, map_location="cpu")
-        # vari layout possibili
         if isinstance(blob, dict):
-            # alcuni salvano direttamente lo state_dict
             sd = blob.get("model_state_dict") or blob.get("state_dict") or blob
         else:
             return None
-        # trova una chiave che finisca con 'last_layer.weight'
         key = None
         for k in sd.keys():
             if k.endswith("last_layer.weight"):
@@ -96,20 +89,16 @@ def main():
     ])
     args = ap.parse_args()
 
-    # 1) test image + class id (da prefisso numerico '010.' -> 9 come index 0-based)
     test_img = resolve_test_image(args.test, args.roots)
     test_class_dir = os.path.basename(os.path.dirname(test_img))  # "010.Red_winged_Blackbird"
     class_prefix = re.match(r"^(\d+)\.", test_class_dir)
     class_id_0 = int(class_prefix.group(1)) - 1 if class_prefix else None
 
-    # 2) mapping
     bb = np.load(args.bb, allow_pickle=True)
     id2rel = load_images_txt(args.images_txt)
 
-    # 3) pesi della last layer per la classe (se disponibili)
     last_row = try_load_last_layer_row(args.ckpt, class_id_0) if class_id_0 is not None else None
 
-    # 4) seleziona prototipi della stessa classe della test image
     j_same = []
     for j in range(bb.size):
         img_id = int(bb.flat[j])
@@ -124,7 +113,6 @@ def main():
                     score_txt = f"w={last_row[j]:.2f}"
                 j_same.append((j, img_path, score_txt))
 
-    # 5) fallback se meno di K
     if len(j_same) < args.k:
         found = set(j for j,_,_ in j_same)
         extras = []
@@ -142,9 +130,8 @@ def main():
 
     proto_list = j_same[:args.k]
     if not proto_list:
-        raise SystemExit("Nessun prototipo disponibile per la figura.")
+        raise SystemExit("No available prototype.")
 
-    # 6) disegna
     draw_panel(test_img, proto_list, args.out)
 
 if __name__ == "__main__":
