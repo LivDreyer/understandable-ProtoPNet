@@ -32,7 +32,7 @@ parser.add_argument('--seed', type=int, default=None, help='random seed to use (
 if __name__ == '__main__':
     # Start training
     import sys
-if len(sys.argv) == 1:  # run col tastino senza argomenti
+if len(sys.argv) == 1:  
     sys.argv += [
         '--dataset', 'img/cub200',
         '--exp_name', 'debug_gpu',
