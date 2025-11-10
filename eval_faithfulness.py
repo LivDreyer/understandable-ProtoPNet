@@ -1,11 +1,9 @@
-# eval_faithfulness.py
 import os, argparse, torch
 from torch.serialization import add_safe_globals
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader, Subset
 import numpy as np
 
-# Allowlist classes for torch.load (PyTorch 2.6+)
 from ppnet.model import PPNet
 add_safe_globals([PPNet])
 try:
