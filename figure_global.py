@@ -20,8 +20,8 @@ def find_one(run_dir, j, suffix):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run_dir", required=True, help="es. saved_models/.../img/epoch-300")
-    ap.add_argument("--proto", type=int, required=True, help="id del prototipo (j)")
-    ap.add_argument("--out", required=True, help="path immagine di output")
+    ap.add_argument("--proto", type=int, required=True, help="id of protype (j)")
+    ap.add_argument("--out", required=True, help="path output image")
     args = ap.parse_args()
 
     j = args.proto
@@ -29,11 +29,11 @@ def main():
 
     fp_orig  = find_one(rd, j, "img-original")
     fp_ovl   = find_one(rd, j, "img-original_with_self_act")
-    fp_crop  = find_one(rd, j, "img")  # questo è tipicamente il crop della patch
+    fp_crop  = find_one(rd, j, "img")  
     fp_actnp = os.path.join(rd, f"{j}_prototype-self-act.npy")
 
     if fp_orig is None and fp_crop is None:
-        raise SystemExit(f"Non trovo artefatti per il prototipo {j} in {rd}")
+        raise SystemExit(f"I can't find artifacts for prototype {j} in {rd}")
 
     cols = []
     titles = []
@@ -51,7 +51,6 @@ def main():
         A = (A - A.min()) / (A.max() - A.min() + 1e-6)
         A = Image.fromarray((A*255).astype(np.uint8)).resize(base.size)
         A = A.convert("L")
-        # colormap su alpha
         heat = Image.fromarray(np.uint8(cm.jet(np.array(A)) * 255))
         heat = heat.convert("RGBA")
         base_rgba = base.convert("RGBA")
