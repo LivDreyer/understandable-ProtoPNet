@@ -31,5 +31,20 @@ parser.add_argument('--seed', type=int, default=None, help='random seed to use (
 
 if __name__ == '__main__':
     # Start training
+    import sys
+if len(sys.argv) == 1:  # run col tastino senza argomenti
+    sys.argv += [
+        '--dataset', 'img/cub200',
+        '--exp_name', 'debug_gpu',
+        '--architecture', 'resnet34',
+        '--epochs', '1',
+        '--warm_epochs', '0',
+        '--test_interval', '1',
+        '--batch_size', '4',
+        '--num_workers', '4',
+        '--num_prototypes', '600',
+        '--gpus', '0'
+    ]
+
     args = parser.parse_args()
     run_training(args)
