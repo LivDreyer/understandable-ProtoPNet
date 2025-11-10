@@ -1,9 +1,7 @@
-# eval_top1.py — compute Top-1 accuracy on CUB test set for a ProtoPNet checkpoint
 import os, torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 
-# safe loading (PyTorch 2.6+)
 from torch.serialization import add_safe_globals
 from ppnet.model import PPNet
 add_safe_globals([PPNet])
@@ -17,7 +15,6 @@ except Exception:
     except Exception:
         pass
 
-# mean/std from repo
 from ppnet.preprocess import mean, std
 
 import argparse
