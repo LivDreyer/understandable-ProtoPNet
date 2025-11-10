@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def find_one(run_dir, j, suffix):
-    # cerca "<j>_prototype-<suffix>" (formato visto nello screenshot)
     pats = [
         os.path.join(run_dir, f"{j}_prototype-{suffix}"),
         os.path.join(run_dir, f"{j}-prototype-{suffix}"),
@@ -31,13 +30,11 @@ def main():
     fp_orig  = find_one(rd, j, "img-original")
     fp_ovl   = find_one(rd, j, "img-original_with_self_act")
     fp_crop  = find_one(rd, j, "img")  # questo è tipicamente il crop della patch
-    # opzionale: mappa grezza delle attivazioni
     fp_actnp = os.path.join(rd, f"{j}_prototype-self-act.npy")
 
     if fp_orig is None and fp_crop is None:
         raise SystemExit(f"Non trovo artefatti per il prototipo {j} in {rd}")
 
-    # carica immagini disponibili
     cols = []
     titles = []
     if fp_orig:
@@ -47,7 +44,6 @@ def main():
     if fp_crop:
         cols.append(Image.open(fp_crop).convert("RGB"));  titles.append("prototype patch")
 
-    # fallback: se manca l’overlay, ma esiste la mappa .npy, la disegniamo velocemente
     if fp_ovl is None and os.path.exists(fp_actnp) and fp_orig:
         import matplotlib.cm as cm
         base = Image.open(fp_orig).convert("RGB")
@@ -62,7 +58,6 @@ def main():
         overlay = Image.alpha_composite(base_rgba, heat.putalpha(120))
         cols.insert(1, overlay.convert("RGB")); titles.insert(1, "source + self-activation")
 
-    # layout e salvataggio
     n = len(cols)
     plt.figure(figsize=(3.4*n, 3.8))
     for i, (im, t) in enumerate(zip(cols, titles), start=1):
