@@ -10,11 +10,12 @@ from tqdm import tqdm
 import cv2
 from PIL import Image
 
-CUB200_URL = 'https://drive.google.com/uc?id=1hbzc_P1FuxMkcabkgn9ZKinBwW683j45'  # Data taken from https://www.vision.caltech.edu/datasets/cub_200_2011/
+# Wasn't working
+# CUB200_URL = 'https://drive.google.com/uc?id=1hbzc_P1FuxMkcabkgn9ZKinBwW683j45'  # Data taken from https://www.vision.caltech.edu/datasets/cub_200_2011/
 CELEB_A_HQ_URL = 'https://drive.google.com/uc?id=1badu11NqxGf6qM3PTTooQDJvQbejgbTv'  # Data taken from http://mmlab.ie.cuhk.edu.hk/projects/CelebA/CelebAMask_HQ.html
 
 PROJECT_ROOT = os.path.dirname(os.path.abspath(__file__))
-DATASETS_FOLDER = f'{PROJECT_ROOT}/datasets'
+DATASETS_FOLDER = f'{PROJECT_ROOT}/img'
 
 
 def download_dataset(url: str, filename: str):
@@ -37,9 +38,13 @@ def unpack_dataset(filepath: str):
 
 def generate_cub200():
     """Generate cub200 dataset."""
-    print('Downloading dataset...')
-    dataset_archive_path = download_dataset(CUB200_URL, 'cub200.tgz')
-    dataset_path = os.path.dirname(dataset_archive_path)
+    # print('Downloading dataset...')
+    print("Using local cub200 dataset...")
+    # dataset_archive_path = download_dataset(CUB200_URL, 'cub200.tgz')
+    dataset_path = os.path.join(DATASETS_FOLDER, 'cub200')
+    os.makedirs(dataset_path, exist_ok=True)
+
+    dataset_archive_path = os.path.join(dataset_path, 'CUB_200_2011.tgz')  # Local path to dataset archive
     print('Unpacking folder...')
     original_path = unpack_dataset(dataset_archive_path)
     print('Generating parts locations...')
@@ -159,6 +164,10 @@ parser = argparse.ArgumentParser(description='Download and prepare the dataset')
 parser.add_argument('dataset', type=str, choices=['cub200', 'celeb_a'], help='The dataset to download %(choices)s')
 
 if __name__ == '__main__':
+    import sys
+if len(sys.argv) == 1:
+    sys.argv += ['cub200']  # Default dataset for debugging
+
     args = parser.parse_args()
     print(f'Generating "{args.dataset}" dataset...')
     if args.dataset == 'cub200':
